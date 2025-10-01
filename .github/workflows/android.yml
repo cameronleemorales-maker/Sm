@@ -1,13 +1,14 @@
-name: Android CI (APK)
+name: Android CI
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,10 +19,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle 8.2 (no cache)
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-disabled: true
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -31,8 +30,7 @@ jobs:
           yes | sdkmanager "platforms;android-33" "build-tools;33.0.1"
 
       - name: Build Debug APK
-        run: |
-          ./gradlew assembleDebug || gradle :app:assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
