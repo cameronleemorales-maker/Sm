@@ -1,4 +1,4 @@
-name: Android CI
+name: Android CI (APK)
 
 on:
   workflow_dispatch:
@@ -17,23 +17,31 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+          java-version: "17"
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      # Install the platform + build-tools that match the project
       - name: Install Android platforms & build-tools
         run: |
-          yes | sdkmanager "platforms;android-33" "build-tools;33.0.1"
+          sdkmanager "platform-tools" \
+                     "platforms;android-33" \
+                     "build-tools;33.0.1"
 
+      # Gradle cache (uses system Gradle, NOT ./gradlew)
+      - name: Set up Gradle 8.x (cache)
+        uses: gradle/actions/setup-gradle@v3
+
+      # ⬇️ IMPORTANT: set the folder that contains `settings.gradle` or `settings.gradle.kts`
+      # If your Gradle project is at the repo root, use '.'.
+      # If it's inside a folder (e.g. 'project'), change PATH_TO_PROJECT to that folder name.
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        working-directory: PATH_TO_PROJECT
+        run: gradle assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: SalesMaster-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: PATH_TO_PROJECT/app/build/outputs/apk/debug/*.apk
